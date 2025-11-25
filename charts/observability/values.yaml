@@ -31,15 +31,14 @@ kube-prometheus-stack:
 
 # --- Datadog Config ---
 datadog:
-  # Point to the Sealed Secret we created
   apiKeyExistingSecret: datadog-secret
-  site: "datadoghq.com" # Change to datadoghq.eu if needed
+  site: "datadoghq.eu"
   logs:
     enabled: true
     containerCollectAll: true
   kubelet:
-    tlsVerify: false # Required for K3s
+    tlsVerify: false
   clusterAgent:
     enabled: true
     metricsProvider:
-      enabled: true # Allows HPA based on Datadog metrics
+      enabled: true
