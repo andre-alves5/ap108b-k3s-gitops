@@ -1,0 +1,33 @@
+# --- Prometheus Config ---
+kube-prometheus-stack:
+  prometheus:
+    prometheusSpec:
+      retention: 5d
+      storageSpec:
+        volumeClaimTemplate:
+          spec:
+            storageClassName: local-path
+            accessModes: ["ReadWriteOnce"]
+            resources:
+              requests:
+                storage: 20Gi
+  grafana:
+    persistence:
+      enabled: true
+      storageClassName: local-path
+      size: 10Gi
+
+# --- Datadog Config ---
+datadog:
+  # Point to the Sealed Secret we created
+  apiKeyExistingSecret: datadog-secret
+  site: "datadoghq.com" # Change to datadoghq.eu if needed
+  logs:
+    enabled: true
+    containerCollectAll: true
+  kubelet:
+    tlsVerify: false # Required for K3s
+  clusterAgent:
+    enabled: true
+    metricsProvider:
+      enabled: true # Allows HPA based on Datadog metrics

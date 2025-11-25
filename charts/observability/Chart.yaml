@@ -1,0 +1,13 @@
+apiVersion: v2
+name: observability-stack
+description: Monitoring bundle (Prometheus + Datadog)
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+dependencies:
+  - name: kube-prometheus-stack
+    version: 56.6.0
+    repository: https://prometheus-community.github.io/helm-charts
+  - name: datadog
+    version: 3.66.0
+    repository: https://helm.datadoghq.com
