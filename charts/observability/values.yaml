@@ -17,11 +17,13 @@ kube-prometheus-stack:
       storageClassName: local-path
       size: 10Gi
     ingress:
-    enabled: true
-    ingressClassName: cilium
-    hosts:
-      - grafana.agallaghertech.online
-    path: /
+      enabled: true
+      ingressClassName: cilium
+      hosts:
+        - grafana.agallaghertech.online
+      path: /
+      service:
+        port: 80
 
 # --- Datadog Config ---
 datadog:
