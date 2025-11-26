@@ -1,3 +1,29 @@
+global:
+  datadog:
+    apiKeyExistingSecret: datadog-secret
+    appKeyExistingSecret: datadog-secret
+
+# --- Datadog Config ---
+datadog:
+  site: "datadoghq.eu"
+  
+  agents:
+    enabled: true 
+  
+  logs:
+    enabled: true
+    containerCollectAll: true
+    
+  kubelet:
+    tlsVerify: false
+
+  clusterAgent:
+    enabled: true
+    tokenExistingSecret: datadog-secret 
+    
+    metricsProvider:
+      enabled: true
+      useDatadogMetrics: true
 # --- Prometheus Config ---
 kube-prometheus-stack:
   prometheus:
@@ -28,17 +54,3 @@ kube-prometheus-stack:
       path: /
       service:
         port: 80
-
-# --- Datadog Config ---
-datadog:
-  apiKeyExistingSecret: datadog-secret
-  site: "datadoghq.eu"
-  logs:
-    enabled: true
-    containerCollectAll: true
-  kubelet:
-    tlsVerify: false
-  clusterAgent:
-    enabled: true
-    metricsProvider:
-      enabled: true

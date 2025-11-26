@@ -1,0 +1,9 @@
+dependencies:
+- name: kube-prometheus-stack
+  repository: https://prometheus-community.github.io/helm-charts
+  version: 56.6.0
+- name: datadog
+  repository: https://helm.datadoghq.com
+  version: 3.66.0
+digest: sha256:700063052b47231d330750c938c6d474bb63dd93647f2a108fa0727220061d2e
+generated: "2025-11-25T21:20:22.896551-03:00"
