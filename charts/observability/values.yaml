@@ -9,9 +9,7 @@ datadog:
     enabled: true
     tokenExistingSecret: datadog-secret
     metricsProvider:
-      enabled: true
-      useDatadogMetrics: true
-      insecureSkipTLSVerify: false
+      enabled: false
   agents:
     enabled: true
 
