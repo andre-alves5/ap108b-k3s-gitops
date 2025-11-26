@@ -1,0 +1,11 @@
+# --- KEDA Config ---
+keda:
+  installCRDs: true
+
+# --- Cert-Manager Config ---
+cert-manager:
+  installCRDs: true
+  prometheus:
+    enabled: true
+    servicemonitor:
+      enabled: true
