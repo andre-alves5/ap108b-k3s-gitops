@@ -1,0 +1,87 @@
+# --- API (Backend) ---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: study-buddy-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: study-buddy-backend
+  template:
+    metadata:
+      labels:
+        app: study-buddy-backend
+    spec:
+      containers:
+      - name: api
+        image: {{ .Values.images.api }}
+        envFrom:
+        - configMapRef:
+            name: study-buddy-config
+        # Roles Anywhere: Mount Certificate
+        env:
+        - name: AWS_CONFIG_FILE
+          value: /app/.aws/config
+        volumeMounts:
+        - name: certs
+          mountPath: /app/certs
+          readOnly: true
+        resources:
+          requests:
+            cpu: {{ .Values.resources.api.requests.cpu }}
+            memory: {{ .Values.resources.api.requests.memory }}
+          limits:
+            cpu: {{ .Values.resources.api.limits.cpu }}
+            memory: {{ .Values.resources.api.limits.memory }}
+      volumes:
+      - name: certs
+        secret:
+          secretName: {{ .Values.secrets.tlsDetails }}
+---
+# --- UI (Frontend) ---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: study-buddy-frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: study-buddy-frontend
+  template:
+    metadata:
+      labels:
+        app: study-buddy-frontend
+    spec:
+      containers:
+      - name: ui
+        image: {{ .Values.images.ui }}
+        envFrom:
+        - configMapRef:
+            name: study-buddy-config
+        env:
+        - name: API_URL
+          value: "http://study-buddy-backend"
+        resources:
+          requests:
+            cpu: {{ .Values.resources.ui.requests.cpu }}
+            memory: {{ .Values.resources.ui.requests.memory }}
+          limits:
+            cpu: {{ .Values.resources.ui.limits.cpu }}
+            memory: {{ .Values.resources.ui.limits.memory }}
+---
+# --- Services ---
+apiVersion: v1
+kind: Service
+metadata: { name: study-buddy-backend }
+spec:
+  ports: [{ port: 80, targetPort: 8000 }]
+  selector: { app: study-buddy-backend }
+---
+apiVersion: v1
+kind: Service
+metadata: { name: study-buddy-frontend }
+spec:
+  ports: [{ port: 80, targetPort: 80 }]
+  selector: { app: study-buddy-frontend }

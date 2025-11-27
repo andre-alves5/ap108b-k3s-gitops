@@ -1,0 +1,32 @@
+{{- if .Values.cloudflare.enabled }}
+# --- Cloudflare Tunnel ---
+# This is a CRD that tells the Cloudflare Operator
+# how to configure the tunnel.
+apiVersion: cloudflare.com/v1
+kind: Tunnel
+metadata:
+  name: study-buddy-tunnel
+spec:
+  cloudflare:
+    # Use an existing secret with the tunnel credentials
+    existingSecret: {{ .Values.cloudflare.secretName }}
+    domain: {{ .Values.cloudflare.hostname }}
+---
+# --- In-Cluster Service ---
+# This service just points to the tunnel connector pods.
+# This is required for the tunnel to work.
+apiVersion: v1
+kind: Service
+metadata:
+  name: study-buddy-tunnel-svc
+spec:
+  ports:
+  - name: http
+    port: 80
+    targetPort: 8080
+  - name: https
+    port: 443
+    targetPort: 8080
+  selector:
+    app: study-buddy-frontend # Route traffic to the UI pods
+{{- end }}

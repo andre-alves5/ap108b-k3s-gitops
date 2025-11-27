@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: study-buddy
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/andre-alves5/ap108b-k3s-gitops.git
+    targetRevision: main
+    path: charts/study-buddy
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

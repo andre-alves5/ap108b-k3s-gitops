@@ -1,0 +1,51 @@
+# Global Config (Passed to all pods)
+config:
+  cognitoDomain: "study-buddy.agallaghertech.online"
+  # These were moved to a SealedSecret
+
+
+# Microservices Images
+images:
+  api: "andrealves5/study-buddy-backend:latest"
+  ui: "andrealves5/study-buddy-frontend:latest"
+  worker: "andrealves5/study-buddy-worker:latest"
+
+# Resources for each microservice
+resources:
+  api:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "500m"
+      memory: "256Mi"
+  ui:
+    requests:
+      cpu: "50m"
+      memory: "64Mi"
+    limits:
+      cpu: "200m"
+      memory: "128Mi"
+  worker:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "500m"
+      memory: "256Mi"
+
+# NetworkPolicy configuration
+networkPolicy:
+  enabled: true
+
+# Cloudflare Tunnel configuration
+cloudflare:
+  enabled: true
+  hostname: "study-buddy.agallaghertech.online" # <-- IMPORTANT: Change this
+  secretName: "cloudflare-tunnel-secret" # <-- The secret with your tunnel credentials
+
+# Secrets (References to SealedSecrets)
+secrets:
+  tlsDetails: "ai-processor-tls"        # The Roles Anywhere Cert
+  kedaCreds: "keda-aws-creds"           # The SQS Poller Keys
+  cognitoSecretName: "cognito-secrets"  # Client Secret

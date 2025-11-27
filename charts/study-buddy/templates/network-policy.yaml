@@ -1,0 +1,50 @@
+{{- if .Values.networkPolicy.enabled }}
+# --- Deny all traffic by default ---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+---
+# --- API (Backend) ---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: api-ingress
+spec:
+  podSelector:
+    matchLabels:
+      app: study-buddy-backend
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: study-buddy-frontend
+    ports:
+    - protocol: TCP
+      port: 8000
+---
+# --- UI (Frontend) ---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: ui-ingress
+spec:
+  podSelector:
+    matchLabels:
+      app: study-buddy-frontend
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    # This will be updated later to allow traffic from Cloudflare Tunnel
+    - podSelector: {}
+    ports:
+    - protocol: TCP
+      port: 80
+{{- end }}

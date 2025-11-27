@@ -1,0 +1,75 @@
+# 1. KEDA Authentication (For the Operator)
+apiVersion: keda.sh/v1alpha1
+kind: TriggerAuthentication
+metadata:
+  name: keda-aws-auth
+spec:
+  secretTargetRef:
+  - parameter: awsAccessKeyID
+    name: {{ .Values.secrets.kedaCreds }}
+    key: AWS_ACCESS_KEY_ID
+  - parameter: awsSecretAccessKey
+    name: {{ .Values.secrets.kedaCreds }}
+    key: AWS_SECRET_ACCESS_KEY
+
+---
+# 2. The ScaledObject (The Autoscaler)
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: study-buddy-worker-scaler
+spec:
+  scaleTargetRef:
+    name: study-buddy-worker
+  minReplicaCount: 0 # Scales to zero!
+  maxReplicaCount: 5
+  triggers:
+  - type: aws-sqs-queue
+    authenticationRef:
+      name: keda-aws-auth
+    metadata:
+      queueURL: {{ .Values.config.sqsUrl }}
+      queueLength: "1" # 1 job per message
+      awsRegion: {{ .Values.config.awsRegion }}
+
+---
+# 3. The Worker Deployment (The AI Processor)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: study-buddy-worker
+spec:
+  replicas: 0 # Let KEDA control this
+  selector:
+    matchLabels:
+      app: study-buddy-worker
+  template:
+    metadata:
+      labels:
+        app: study-buddy-worker
+    spec:
+      containers:
+      - name: worker
+        image: {{ .Values.images.worker }}
+        envFrom:
+        - configMapRef:
+            name: study-buddy-config
+        # Roles Anywhere Identity (For processing)
+        env:
+        - name: AWS_CONFIG_FILE
+          value: /app/.aws/config
+        volumeMounts:
+        - name: certs
+          mountPath: /app/certs
+          readOnly: true
+        resources:
+          requests:
+            cpu: {{ .Values.resources.worker.requests.cpu }}
+            memory: {{ .Values.resources.worker.requests.memory }}
+          limits:
+            cpu: {{ .Values.resources.worker.limits.cpu }}
+            memory: {{ .Values.resources.worker.limits.memory }}
+      volumes:
+      - name: certs
+        secret:
+          secretName: {{ .Values.secrets.tlsDetails }}

@@ -1,0 +1,52 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: study-buddy-config
+  namespace: study-buddy
+data:
+  COGNITO_DOMAIN: {{ .Values.config.cognitoDomain }}
+  # AWS values are now sourced from the aws-resources secret
+---
+# This section is a bit of a hack to get the values from the secret into the pods
+# A better solution would be to use a tool like External Secrets Operator
+# but for now this will work.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: dummy-pod-for-env
+  namespace: study-buddy
+spec:
+  containers:
+  - name: dummy-container
+    image: busybox
+    env:
+      - name: AWS_REGION
+        valueFrom:
+          secretKeyRef:
+            name: aws-resources
+            key: awsRegion
+      - name: S3_BUCKET
+        valueFrom:
+          secretKeyRef:
+            name: aws-resources
+            key: s3Bucket
+      - name: DYNAMO_TABLE
+        valueFrom:
+          secretKeyRef:
+            name: aws-resources
+            key: dynamoTable
+      - name: SQS_URL
+        valueFrom:
+          secretKeyRef:
+            name: aws-resources
+            key: sqsUrl
+      - name: COGNITO_POOL_ID
+        valueFrom:
+          secretKeyRef:
+            name: aws-resources
+            key: cognitoPoolId
+      - name: COGNITO_CLIENT_ID
+        valueFrom:
+          secretKeyRef:
+            name: aws-resources
+            key: cognitoClientId
