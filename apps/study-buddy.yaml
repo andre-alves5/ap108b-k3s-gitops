@@ -11,7 +11,7 @@ spec:
     path: charts/study-buddy
   destination:
     server: https://kubernetes.default.svc
-    namespace: default
+    namespace: study-buddy
   syncPolicy:
     automated:
       prune: true
