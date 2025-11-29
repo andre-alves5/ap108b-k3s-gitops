@@ -15,6 +15,7 @@ spec:
     spec:
       containers:
       - name: api
+        image: {{ .Values.images.api }}
         envFrom:
         - configMapRef:
             name: study-buddy-config

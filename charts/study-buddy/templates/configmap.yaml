@@ -6,4 +6,5 @@ metadata:
 data:
   COGNITO_DOMAIN: {{ .Values.config.cognitoDomain }}
   AWS_REGION: {{ .Values.config.awsRegion }}
-  # AWS values are now sourced from the aws-resources secret
+  COGNITO_USER_POOL_ID: {{ .Values.config.cognitoPoolId }}
+  COGNITO_CLIENT_ID: {{ .Values.config.cognitoClientId }}
