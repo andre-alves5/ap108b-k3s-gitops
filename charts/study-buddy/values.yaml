@@ -1,6 +1,7 @@
 # Global Config (Passed to all pods)
 config:
   cognitoDomain: "study-buddy.agallaghertech.online"
+  awsRegion: "us-east-1"
   # These were moved to a SealedSecret
 
 
