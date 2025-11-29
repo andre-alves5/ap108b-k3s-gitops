@@ -3,16 +3,13 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: study-buddy-ingress
-  annotations:
-    # Rewrite /api/v1/upload -> /upload
-    nginx.ingress.kubernetes.io/rewrite-target: /$2
 spec:
   ingressClassName: cilium
   rules:
   - host: {{ .Values.config.cognitoDomain }}
     http:
       paths:
-      - path: /api(/|$)(.*)
+      - path: /api
         pathType: Prefix
         backend:
           service:
