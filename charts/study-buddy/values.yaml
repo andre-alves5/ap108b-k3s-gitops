@@ -43,7 +43,7 @@ networkPolicy:
 
 # Cloudflare Tunnel configuration
 cloudflare:
-  enabled: false
+  enabled: true
   hostname: "study-buddy.agallaghertech.online" # <-- IMPORTANT: Change this
   secretName: "cloudflare-tunnel-secret" # <-- The secret with your tunnel credentials
 
