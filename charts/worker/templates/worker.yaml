@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: study-buddy-worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: study-buddy-worker
+  template:
+    metadata:
+      labels:
+        app: study-buddy-worker
+    spec:
+      containers:
+      - name: worker
+        image: {{ .Values.image }}
+        envFrom:
+        - secretRef:
+            name: {{ .Values.secrets.kedaCreds }}
+        resources:
+          requests:
+            cpu: {{ .Values.resources.requests.cpu }}
+            memory: {{ .Values.resources.requests.memory }}
+          limits:
+            cpu: {{ .Values.resources.limits.cpu }}
+            memory: {{ .Values.resources.limits.memory }}

@@ -1,14 +1,14 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: study-buddy
+  name: study-buddy-backend
   namespace: argocd
 spec:
   project: default
   source:
     repoURL: https://github.com/andre-alves5/ap108b-k3s-gitops.git
     targetRevision: main
-    path: charts/study-buddy
+    path: charts/backend
   destination:
     server: https://kubernetes.default.svc
     namespace: study-buddy

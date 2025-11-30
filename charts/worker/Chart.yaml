@@ -1,0 +1,4 @@
+apiVersion: v2
+name: worker
+description: A Helm chart for the Study Buddy worker application.
+version: 0.1.0

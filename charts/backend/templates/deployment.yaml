@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: study-buddy-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: study-buddy-backend
+  template:
+    metadata:
+      labels:
+        app: study-buddy-backend
+    spec:
+      containers:
+      - name: api
+        image: {{ .Values.image }}
+        envFrom:
+        - configMapRef:
+            name: study-buddy-config
+        - secretRef:
+            name: aws-resources
+        env:
+        - name: AWS_CONFIG_FILE
+          value: /app/.aws/config
+        volumeMounts:
+        - name: certs
+          mountPath: /app/certs
+          readOnly: true
+        resources:
+          requests:
+            cpu: {{ .Values.resources.requests.cpu }}
+            memory: {{ .Values.resources.requests.memory }}
+          limits:
+            cpu: {{ .Values.resources.limits.cpu }}
+            memory: {{ .Values.resources.limits.memory }}
+      volumes:
+      - name: certs
+        secret:
+          secretName: {{ .Values.secrets.tlsDetails }}
