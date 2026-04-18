@@ -17,13 +17,18 @@ jobs:
           kubectl kustomize bootstrap/ | kubectl apply --dry-run=client -f -
 
       - name: Pre-Flight Check (Verify Mounts)
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: 10.108.4.252
-          username: andre
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: |
-            mountpoint -q /mnt/k3s-system && mountpoint -q /mnt/fast-scratch || exit 1
+        run: |
+          # Create the ssh directory and save the secret key to a temp file
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          
+          # Run the check with strict host checking disabled for the internal network
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no andre@10.108.4.252 \
+            "mountpoint -q /mnt/k3s-system && mountpoint -q /mnt/fast-scratch"
+          
+          # Cleanup
+          rm ~/.ssh/id_rsa
 
       - name: Bootstrap Root Application
         run: |
