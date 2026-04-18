@@ -1,5 +1,24 @@
+# Terraform
 *.terraform/
 *.tfstate
 *.tfstate.backup
 *.tfvars
+*.tfvars.json
+
+# Keys & Certificates
 *.pem
+*.key
+*.crt
+# Add this to prevent pushing the "plain" secrets before they are sealed
+*-plain.yaml
+*-raw.yaml
+
+# OS / IDE
+.DS_Store
+.idea/
+.vscode/
+
+# Backups
+.old/
+*.bak
+*.tmp

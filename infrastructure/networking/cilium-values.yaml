@@ -1,0 +1,31 @@
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: cilium
+  namespace: kube-system
+spec:
+  chart: cilium
+  repo: https://helm.cilium.io/
+  targetNamespace: kube-system
+  valuesContent: |
+    ipam:
+      mode: cluster-pool
+      operator:
+        clusterPoolIPv4PodCIDRList: ["10.110.0.0/16"]
+        clusterPoolIPv4MaskSize: 24
+    routingMode: tunnel
+    tunnelProtocol: vxlan
+    kubeProxyReplacement: true
+    l2announcements:
+      enabled: true
+    externalIPs:
+      enabled: true
+    hubble:
+      enabled: true
+      relay:
+        enabled: true
+      ui:
+        enabled: true
+    ingressController:
+      enabled: true
+      loadbalancerMode: shared

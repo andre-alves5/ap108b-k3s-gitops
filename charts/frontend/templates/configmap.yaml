@@ -1,7 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: study-buddy-config
-data:
-  cognitoDomain: {{ .Values.config.cognitoDomain }}
-  awsRegion: {{ .Values.config.awsRegion }}

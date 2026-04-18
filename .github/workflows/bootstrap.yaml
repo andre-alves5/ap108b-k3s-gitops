@@ -1,0 +1,36 @@
+name: Cluster Bootstrap & Sync
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  gitops-sync:
+    runs-on: self-hosted
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Validate Kubernetes Manifests
+        run: |
+          # Now that bootstrap has a kustomization.yaml, this stays the same
+          # It validates the root-app and the layers/ files combined
+          kubectl kustomize bootstrap/ | kubectl apply --dry-run=client -f -
+
+      - name: Pre-Flight Check (Verify Mounts)
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: 10.108.4.252
+          username: andre
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            mountpoint -q /mnt/k3s-system && mountpoint -q /mnt/fast-scratch || exit 1
+
+      - name: Bootstrap Root Application
+        run: |
+          # CHANGE HERE: Use -k instead of -f to apply the kustomization
+          kubectl apply -k bootstrap/
+
+      - name: Force ArgoCD Sync (Heal Drift)
+        run: |
+          # This remains the same as it targets the live object in the cluster
+          kubectl patch application root-app -n argocd --type merge -p '{"spec":{"syncPolicy":{"automated":{"prune":true,"selfHeal":true}}}}'
