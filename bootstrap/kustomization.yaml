@@ -3,5 +3,6 @@ kind: Kustomization
 
 resources:
   - root-app.yaml
+  - projects.yaml
   - layers/infrastructure.yaml
   - layers/applications.yaml
