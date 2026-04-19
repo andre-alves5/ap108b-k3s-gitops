@@ -33,7 +33,7 @@
           k8s-install-cilium-pod-cidr: "true"
           routingMode: tunnel
           tunnelProtocol: vxlan
-          kubeProxyReplacement: true
+          kubeProxyReplacement: disabled
           k8sServiceHost: 127.0.0.1
           k8sServicePort: 6443
           l2announcements:
@@ -41,9 +41,9 @@
           externalIPs:
             enabled: true
           hubble:
-            enabled: true
+            enabled: false
             relay:
-              enabled: true
+              enabled: false
             ui:
               enabled: true
           ingressController:
