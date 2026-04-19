@@ -20,7 +20,7 @@
         chart_ref: cilium/cilium
         release_namespace: kube-system
         create_namespace: true
-        chart_version: 1.15.3
+        chart_version: 1.19.3
         kubeconfig: /etc/rancher/k3s/k3s.yaml
         release_values:
           operator:
