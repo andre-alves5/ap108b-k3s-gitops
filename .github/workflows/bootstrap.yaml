@@ -21,7 +21,7 @@ jobs:
           ansible-playbook -i '${{ secrets.SERVER_IP }},' \
             --user ${{ secrets.USER }} \
             --private-key ~/.ssh/id_rsa \
-            --extra-vars "ansible_ssh_common_args='-o StrictHostKeyChecking=no'" \
+            --extra-vars "ansible_ssh_common_args='-o StrictHostKeyChecking=no' ansible_become_password='${{ secrets.BECOME_PASSWORD }}'" \
             ansible/k3s-setup.yml
   gitops-sync:
     needs: bootstrap-k3s
