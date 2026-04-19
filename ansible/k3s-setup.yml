@@ -43,10 +43,24 @@
 
     - name: Install or Upgrade K3s
       shell: |
-        curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION="{{ k3s_version }}" sh -s - server --write-kubeconfig-mode 644
+        curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION="{{ k3s_version }}" sh -s - server
       environment:
         INSTALL_K3S_EXEC: "server"
-      when: k3s_config.changed or ansible_local.k3s_version != k3s_version
+      when: k3s_config.changed or (ansible_local.k3s.settings.version | default('')) != k3s_version
+
+    - name: Create Ansible custom facts directory
+      file:
+        path: /etc/ansible/facts.d
+        state: directory
+        mode: '0755'
+
+    - name: Record installed K3s version as a local fact
+      copy:
+        dest: /etc/ansible/facts.d/k3s.fact
+        content: |
+          [settings]
+          version={{ k3s_version }}
+        mode: '0644'
 
     - name: Wait for K3s API to be ready
       wait_for:
