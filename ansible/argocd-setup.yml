@@ -28,10 +28,12 @@
       until: >
         (argocd_pods.resources | default([])) | length > 0 and
         (
-          (argocd_pods.resources | default([]))
-          | map(attribute='status.containerStatuses') | flatten
-          | map(attribute='ready') | list
-          | min
+          (argocd_pods.resources | map(attribute='status.phase') | list)
+          | unique
+        ) == ["Running"] and
+        (
+          (argocd_pods.resources |map(attribute='status.containerStatuses') | flatten
+          | map(attribute='ready') | list | min)
         )
       retries: 30
       delay: 10
