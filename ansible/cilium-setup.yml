@@ -4,25 +4,24 @@
   become: true
   vars:
     ansible_python_interpreter: /usr/bin/python3
-    k3s_version: "v1.33.6+k3s1"
     cluster_cidr: "10.110.0.0/16"
     service_cidr: "10.43.0.0/16"
 
   tasks:
 
     - name: Add Cilium Helm repo
-      community.kubernetes.helm_repository:
+      kubernetes.core.helm_repository:
         name: cilium
         repo_url: https://helm.cilium.io/
 
     - name: Install Cilium via Helm
-      community.kubernetes.helm:
-        name: cilium
+      kubernetes.core.helm:
+        release_name: cilium
         chart_ref: cilium/cilium
         release_namespace: kube-system
         create_namespace: true
-        version: 1.15.3
-        values:
+        chart_version: 1.15.3
+        release_values:
           operator:
             replicas: 1
           ipam:
@@ -49,8 +48,8 @@
           ingressController:
             enabled: false
 
-    - name: Wait for Cilium pods to be running
-      community.kubernetes.k8s_info:
+    - name: Wait for Cilium pods to be ready
+      kubernetes.core.k8s_info:
         api_version: v1
         kind: Pod
         namespace: kube-system

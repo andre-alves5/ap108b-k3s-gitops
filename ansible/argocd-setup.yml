@@ -4,26 +4,23 @@
   become: true
   vars:
     ansible_python_interpreter: /usr/bin/python3
-    k3s_version: "v1.33.6+k3s1"
-    cluster_cidr: "10.110.0.0/16"
-    service_cidr: "10.43.0.0/16"
 
   tasks:
 
     - name: Create ArgoCD namespace
-      community.kubernetes.k8s:
+      kubernetes.core.k8s:
         api_version: v1
         kind: Namespace
         name: argocd
 
     - name: Apply ArgoCD manifests
-      community.kubernetes.k8s:
+      kubernetes.core.k8s:
         state: present
         namespace: argocd
         src: files/argocd-install.yaml
 
     - name: Wait for ArgoCD pods to be ready
-      community.kubernetes.k8s_info:
+      kubernetes.core.k8s_info:
         api_version: v1
         kind: Pod
         namespace: argocd
