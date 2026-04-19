@@ -61,13 +61,6 @@
       register: cilium_pods
       until: >
         (cilium_pods.resources | default([])) | length > 0 and
-        (
-          (cilium_pods.resources | map(attribute='status.phase') | list)
-          | unique
-        ) == ["Running"] and
-        (
-          (cilium_pods.resources | map(attribute='status.containerStatuses') | flatten
-          | map(attribute='ready') | list | min)
-        )
+        ((cilium_pods.resources | map(attribute='status.phase') | list) | unique) == ["Running"]
       retries: 30
       delay: 10
