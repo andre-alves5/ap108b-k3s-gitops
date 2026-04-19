@@ -1,0 +1,43 @@
+---
+- name: Manage K3s Lifecycle
+  hosts: cm3588-nas
+  become: true
+  vars:
+    k3s_version: "v1.33.6+k3s1"
+    cluster_cidr: "10.110.0.0/16"
+    service_cidr: "10.43.0.0/16"
+
+  tasks:
+    - name: Ensure K3s config directory exists
+      file:
+        path: /etc/rancher/k3s
+        state: directory
+        mode: '0755'
+
+    - name: Deploy K3s Configuration
+      copy:
+        dest: /etc/rancher/k3s/config.yaml
+        content: |
+          cluster-cidr: {{ cluster_cidr }}
+          service-cidr: {{ service_cidr }}
+          flannel-backend: "none"
+          disable-network-policy: true
+          disable:
+            - servicelb
+            - traefik
+          write-kubeconfig-mode: "0644"
+        mode: '0644'
+      register: k3s_config
+
+    - name: Install or Upgrade K3s
+      shell: |
+        curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION="{{ k3s_version }}" sh -s - server
+      environment:
+        INSTALL_K3S_SKIP_ENABLE: "false"
+      when: k3s_config.changed or ansible_local.k3s_version != k3s_version
+
+    - name: Wait for K3s API to be ready
+      wait_for:
+        port: 6443
+        delay: 5
+        timeout: 60
