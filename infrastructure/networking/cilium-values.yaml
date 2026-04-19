@@ -15,6 +15,7 @@ spec:
       operator:
         clusterPoolIPv4PodCIDRList: ["10.110.0.0/16"]
         clusterPoolIPv4MaskSize: 24
+    k8s-install-cilium-pod-cidr: "true"
     routingMode: tunnel
     tunnelProtocol: vxlan
     kubeProxyReplacement: true
