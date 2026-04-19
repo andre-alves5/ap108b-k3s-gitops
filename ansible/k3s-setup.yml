@@ -30,11 +30,22 @@
         mode: '0644'
       register: k3s_config
 
+    - name: Clean up old K3s processes if config changed
+      command: /usr/local/bin/k3s-killall.sh
+      when: k3s_config.changed
+      ignore_errors: yes
+
+    - name: Wipe K3s database to reset CIDR assignments
+      file:
+        path: /var/lib/rancher/k3s/server/db
+        state: absent
+      when: k3s_config.changed
+
     - name: Install or Upgrade K3s
       shell: |
-        curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION="{{ k3s_version }}" sh -s - server
+        curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION="{{ k3s_version }}" sh -s - server --write-kubeconfig-mode 644
       environment:
-        INSTALL_K3S_SKIP_ENABLE: "false"
+        INSTALL_K3S_EXEC: "server"
       when: k3s_config.changed or ansible_local.k3s_version != k3s_version
 
     - name: Wait for K3s API to be ready
