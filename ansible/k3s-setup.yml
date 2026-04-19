@@ -3,6 +3,7 @@
   hosts: all
   become: true
   vars:
+    ansible_python_interpreter: /usr/bin/python3
     k3s_version: "v1.33.6+k3s1"
     cluster_cidr: "10.110.0.0/16"
     service_cidr: "10.43.0.0/16"
