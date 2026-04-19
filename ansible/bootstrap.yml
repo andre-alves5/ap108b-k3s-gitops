@@ -1,0 +1,19 @@
+---
+- name: Bootstrap full K3s cluster with GitOps
+  hosts: all
+  become: true
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+    k3s_version: "v1.33.6+k3s1"
+    cluster_cidr: "10.110.0.0/16"
+    service_cidr: "10.43.0.0/16"
+
+  tasks:
+    - name: Run K3s setup
+      import_playbook: k3s-setup.yml
+
+    - name: Run Cilium setup
+      import_playbook: cilium-setup.yml
+
+    - name: Run ArgoCD setup
+      import_playbook: argocd-setup.yml
