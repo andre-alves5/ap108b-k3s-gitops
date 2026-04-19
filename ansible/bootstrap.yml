@@ -1,4 +1,0 @@
----
-- import_playbook: k3s-setup.yml
-- import_playbook: cilium-setup.yml
-- import_playbook: argocd-setup.yml

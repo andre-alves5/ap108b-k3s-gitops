@@ -31,6 +31,7 @@ jobs:
 
       - name: Run Ansible Cilium Setup
         run: |
+          export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
           ansible-playbook -i '${{ secrets.SERVER_IP }},' \
             --user ${{ secrets.USER }} \
             --private-key ~/.ssh/id_rsa \
@@ -39,6 +40,7 @@ jobs:
 
       - name: Run Ansible ArgoCD Setup
         run: |
+          export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
           ansible-playbook -i '${{ secrets.SERVER_IP }},' \
             --user ${{ secrets.USER }} \
             --private-key ~/.ssh/id_rsa \
