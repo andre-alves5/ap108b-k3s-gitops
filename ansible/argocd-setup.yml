@@ -4,21 +4,29 @@
   become: true
   vars:
     ansible_python_interpreter: /usr/bin/python3
+    kubeconfig_path: /etc/rancher/k3s/k3s.yaml
 
   tasks:
+    - name: Add ArgoCD Helm repo
+      kubernetes.core.helm_repository:
+        name: argo
+        repo_url: https://argoproj.github.io/argo-helm
 
-    - name: Create ArgoCD namespace
-      kubernetes.core.k8s:
-        api_version: v1
-        kind: Namespace
-        name: argocd
+    - name: Install ArgoCD via Helm
+      kubernetes.core.helm:
+        release_name: argocd
+        chart_ref: argo/argo-cd
+        release_namespace: argocd
+        create_namespace: true
+        chart_version: 6.7.14
+        kubeconfig: "{{ kubeconfig_path }}"
 
-    - name: Apply ArgoCD manifests
+    - name: Wait for ArgoCD server deployment to be ready
       kubernetes.core.k8s:
-        state: present
+        api_version: apps/v1
+        kind: Deployment
+        name: argocd-server
         namespace: argocd
-        src: files/argocd-install.yaml
-
-    - name: Wait for ArgoCD pods to be ready
-      ansible.builtin.pause:
-        seconds: 30
+        wait: yes
+        wait_timeout: 300
+        kubeconfig: "{{ kubeconfig_path }}"
