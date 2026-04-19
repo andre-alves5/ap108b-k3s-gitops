@@ -18,7 +18,7 @@
         chart_ref: argo/argo-cd
         release_namespace: argocd
         create_namespace: true
-        chart_version: 6.7.14
+        chart_version: 7.3.6
         kubeconfig: "{{ kubeconfig_path }}"
 
     - name: Wait for ArgoCD server deployment to be ready
