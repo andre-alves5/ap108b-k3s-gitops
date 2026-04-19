@@ -4,7 +4,7 @@ kind: Kustomization
 resources:
   - storage/classes.yaml
   - networking/cilium-values.yaml
-  - security/sealed-secrets.yaml
-  - scaling/kustomization.yaml
-  - identity/kustomization.yaml
-  - monitoring/kustomization.yaml
+  - security/
+  - scaling/
+  - identity/
+  - monitoring/

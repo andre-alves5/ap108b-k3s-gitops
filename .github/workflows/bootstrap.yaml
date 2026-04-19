@@ -12,30 +12,21 @@ jobs:
 
       - name: Validate Kubernetes Manifests
         run: |
-          # Now that bootstrap has a kustomization.yaml, this stays the same
-          # It validates the root-app and the layers/ files combined
-          kubectl kustomize bootstrap/ | kubectl apply --dry-run=client -f -
+          kubectl apply --dry-run=client -R -f bootstrap/
 
       - name: Pre-Flight Check (Verify Mounts)
         run: |
-          # Create the ssh directory and save the secret key to a temp file
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          
-          # Run the check with strict host checking disabled for the internal network
           ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no andre@10.108.4.252 \
             "mountpoint -q /mnt/k3s-system && mountpoint -q /mnt/fast-scratch"
-          
-          # Cleanup
           rm ~/.ssh/id_rsa
 
       - name: Bootstrap Root Application
         run: |
-          # CHANGE HERE: Use -k instead of -f to apply the kustomization
-          kubectl apply -k bootstrap/
+          kubectl apply -f bootstrap/root-app.yaml
 
       - name: Force ArgoCD Sync (Heal Drift)
         run: |
-          # This remains the same as it targets the live object in the cluster
           kubectl patch application root-app -n argocd --type merge -p '{"spec":{"syncPolicy":{"automated":{"prune":true,"selfHeal":true}}}}'

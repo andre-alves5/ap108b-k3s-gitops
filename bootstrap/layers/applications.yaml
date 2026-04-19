@@ -1,22 +1,29 @@
 apiVersion: argoproj.io/v1alpha1
-kind: Application
+kind: ApplicationSet
 metadata:
-  name: layer-applications
+  name: applications-layer
   namespace: argocd
 spec:
-  project: applications
-  source:
-    repoURL: 'https://github.com/andre-alves5/ap108b-k3s-gitops'
-    targetRevision: HEAD
-    path: apps
-    directory:
-      recurse: true
-  destination:
-    server: 'https://kubernetes.default.svc'
-    namespace: argocd 
-  syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
-    syncOptions:
-      - CreateNamespace=true 
+  generators:
+    - git:
+        repoURL: 'https://github.com/andre-alves5/ap108b-k3s-gitops'
+        revision: HEAD
+        directories:
+          - path: apps/*
+  template:
+    metadata:
+      name: "{{path.basename}}"
+    spec:
+      project: applications
+      source:
+        repoURL: 'https://github.com/andre-alves5/ap108b-k3s-gitops'
+        targetRevision: HEAD
+        path: "{{path}}"
+        kustomize:
+          buildOptions: "--enable-helm"
+      destination:
+        server: 'https://kubernetes.default.svc'
+        namespace: "{{path.basename}}"
+      syncPolicy:
+        automated: { prune: true, selfHeal: true }
+        syncOptions: [CreateNamespace=true]
