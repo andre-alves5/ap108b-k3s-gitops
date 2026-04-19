@@ -8,6 +8,8 @@ spec:
   repo: https://helm.cilium.io/
   targetNamespace: kube-system
   valuesContent: |
+    operator:
+      replicas: 1
     ipam:
       mode: cluster-pool
       operator:
@@ -16,6 +18,8 @@ spec:
     routingMode: tunnel
     tunnelProtocol: vxlan
     kubeProxyReplacement: true
+    k8sServiceHost: 127.0.0.1
+    k8sServicePort: 6443
     l2announcements:
       enabled: true
     externalIPs:
@@ -27,5 +31,4 @@ spec:
       ui:
         enabled: true
     ingressController:
-      enabled: true
-      loadbalancerMode: shared
+      enabled: false
