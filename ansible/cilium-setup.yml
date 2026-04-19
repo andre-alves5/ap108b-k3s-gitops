@@ -45,7 +45,7 @@
             relay:
               enabled: false
             ui:
-              enabled: true
+              enabled: false
           ingressController:
             enabled: false
 
