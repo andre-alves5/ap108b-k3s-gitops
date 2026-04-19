@@ -19,7 +19,7 @@ jobs:
       - name: Run Ansible K3s Setup
         run: |
           ansible-playbook -i '${{ secrets.SERVER_IP }},' \
-            --user ${{ secrets.USER }} \
+            --user andre \
             --private-key ~/.ssh/id_rsa \
             --extra-vars "ansible_ssh_common_args='-o StrictHostKeyChecking=no'" \
             ansible/k3s-setup.yml
