@@ -60,7 +60,9 @@
           - k8s-app=cilium
       register: cilium_pods
       until: >
-        (cilium_pods.resources | default([])) | length > 0 and
-        ((cilium_pods.resources | map(attribute='status.phase') | list) | unique) == ["Running"]
+        (cilium_pods.resources | selectattr('status.conditions', 'defined')
+        | map(attribute='status.conditions') | flatten
+        | selectattr('type','equalto','Ready')
+        | map(attribute='status') | list) | unique == ["True"]
       retries: 30
       delay: 10
