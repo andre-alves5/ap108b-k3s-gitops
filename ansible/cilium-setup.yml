@@ -58,9 +58,9 @@
           - k8s-app=cilium
       register: cilium_pods
       until: >
-        cilium_pods.resources | length > 0 and
+        (cilium_pods.resources | default([])) | length > 0 and
         (
-          cilium_pods.resources
+          (cilium_pods.resources | default([]))
           | map(attribute='status.containerStatuses') | flatten
           | map(attribute='ready') | list
           | min

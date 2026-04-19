@@ -12,7 +12,6 @@ jobs:
 
       - name: Install Ansible Collections
         run: |
-          ansible-galaxy collection install community.kubernetes
           ansible-galaxy collection install kubernetes.core
 
       - name: Setup SSH Key

@@ -26,9 +26,9 @@
         namespace: argocd
       register: argocd_pods
       until: >
-        argocd_pods.resources | length > 0 and
+        (argocd_pods.resources | default([])) | length > 0 and
         (
-          argocd_pods.resources
+          (argocd_pods.resources | default([]))
           | map(attribute='status.containerStatuses') | flatten
           | map(attribute='ready') | list
           | min
