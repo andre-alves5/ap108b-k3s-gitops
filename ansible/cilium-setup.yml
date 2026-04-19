@@ -60,8 +60,10 @@
       until: >
         cilium_pods.resources | length > 0 and
         (
-          cilium_pods.resources | map(attribute='status.containerStatuses') | flatten |
-          map(attribute='ready') | list
-        ) | all
+          cilium_pods.resources
+          | map(attribute='status.containerStatuses') | flatten
+          | map(attribute='ready') | list
+          | min
+        )
       retries: 30
       delay: 10
