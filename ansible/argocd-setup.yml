@@ -47,6 +47,9 @@
               cilium.io/ingress.ssl-passthrough: "true"
           spec:
             ingressClassName: cilium
+            tls:
+              - hosts:
+                  - argocd.agallaghertech.online
             rules:
               - host: argocd.agallaghertech.online
                 http:
