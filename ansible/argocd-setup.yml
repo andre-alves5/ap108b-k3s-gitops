@@ -57,7 +57,8 @@
               cert-manager.io/cluster-issuer: "homelab-ca-issuer"
               ingress.cilium.io/service-type: LoadBalancer
               ingress.cilium.io/loadbalancer-mode: shared
-              cilium.io/ingress.ssl-passthrough: "true"
+              cilium.io/ingress.ssl-passthrough: "false"
+              nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
           spec:
             ingressClassName: cilium
             tls:
@@ -75,6 +76,19 @@
                           name: argocd-server
                           port:
                             name: https
+
+    - name: Wait for ArgoCD TLS Certificate to be Ready
+      kubernetes.core.k8s_info:
+        kubeconfig: "{{ kubeconfig_path }}"
+        kind: Certificate
+        name: argocd-server-tls
+        namespace: argocd
+      register: cert_status
+      until: >
+        cert_status.resources | length > 0 and
+        (cert_status.resources[0].status.conditions | selectattr('type', 'equalto', 'Ready') | map(attribute='status') | first == 'True')
+      retries: 10
+      delay: 5
 
     - name: Restart ArgoCD Repo Server to apply Helm config
       kubernetes.core.k8s:
