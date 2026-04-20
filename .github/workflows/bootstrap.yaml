@@ -45,6 +45,15 @@ jobs:
             --private-key ~/.ssh/id_rsa \
             --extra-vars "ansible_ssh_common_args='-o StrictHostKeyChecking=no' ansible_become_password='${{ secrets.BECOME_PASSWORD }}'" \
             ansible/argocd-setup.yml
+
+      - name: Run Ansible Sealed Secrets Setup
+        run: |
+          export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
+          ansible-playbook -i '${{ secrets.SERVER_IP }},' \
+            --user ${{ secrets.USER }} \
+            --private-key ~/.ssh/id_rsa \
+            --extra-vars "ansible_ssh_common_args='-o StrictHostKeyChecking=no' ansible_become_password='${{ secrets.BECOME_PASSWORD }}'" \
+            ansible/sealed-secrets-setup.yml
   gitops-sync:
     needs: bootstrap-k3s
     runs-on: self-hosted
