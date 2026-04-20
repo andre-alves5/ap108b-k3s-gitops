@@ -58,7 +58,7 @@
               ingress.cilium.io/service-type: LoadBalancer
               ingress.cilium.io/loadbalancer-mode: shared
               cilium.io/ingress.ssl-passthrough: "false"
-              nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+              ingress.cilium.io/protocol: "https"
           spec:
             ingressClassName: cilium
             tls:
