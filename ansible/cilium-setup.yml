@@ -49,7 +49,7 @@
             ui:
               enabled: true
           ingressController:
-            enabled: false
+            enabled: true
 
     - name: Pause to allow Cilium pods to settle
       ansible.builtin.pause:
