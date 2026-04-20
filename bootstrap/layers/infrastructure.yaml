@@ -14,6 +14,8 @@ spec:
             exclude: true
           - path: infrastructure/security
             exclude: true
+          - path: infrastructure/identity
+            exclude: true
   template:
     metadata:
       name: "{{path.basename}}"
