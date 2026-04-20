@@ -1,0 +1,77 @@
+---
+- name: Infrastructure Identity Layer
+  hosts: all
+  become: true
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+    kubeconfig_path: /etc/rancher/k3s/k3s.yaml
+
+  tasks:
+    - name: Add Jetstack Helm repo
+      kubernetes.core.helm_repository:
+        name: jetstack
+        repo_url: https://charts.jetstack.io
+
+    - name: Install Cert-Manager via Helm
+      kubernetes.core.helm:
+        kubeconfig: "{{ kubeconfig_path }}"
+        name: cert-manager
+        chart_ref: jetstack/cert-manager
+        release_namespace: kube-system
+        create_namespace: true
+        chart_version: v1.14.4
+        values:
+          installCRDs: true
+        wait: true
+
+    - name: Apply Self-Signed Issuer and Root CA
+      kubernetes.core.k8s:
+        kubeconfig: "{{ kubeconfig_path }}"
+        state: present
+        definition:
+          - apiVersion: cert-manager.io/v1
+            kind: ClusterIssuer
+            metadata:
+              name: selfsigned-issuer
+            spec:
+              selfSigned: {}
+          - apiVersion: cert-manager.io/v1
+            kind: Certificate
+            metadata:
+              name: homelab-root-ca
+              namespace: kube-system
+            spec:
+              isCA: true
+              commonName: homelab-root-ca
+              secretName: root-secret
+              privateKey:
+                algorithm: ECDSA
+                size: 256
+              issuerRef:
+                name: selfsigned-issuer
+                kind: ClusterIssuer
+                group: cert-manager.io
+
+    - name: Wait for Root Secret to be generated
+      kubernetes.core.k8s_info:
+        kubeconfig: "{{ kubeconfig_path }}"
+        kind: Secret
+        name: root-secret
+        namespace: kube-system
+      register: root_secret
+      until: root_secret.resources | length > 0
+      retries: 12
+      delay: 5
+
+    - name: Final Homelab CA Issuer
+      kubernetes.core.k8s:
+        kubeconfig: "{{ kubeconfig_path }}"
+        state: present
+        definition:
+          apiVersion: cert-manager.io/v1
+          kind: ClusterIssuer
+          metadata:
+            name: homelab-ca-issuer
+          spec:
+            ca:
+              secretName: root-secret

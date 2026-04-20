@@ -1,0 +1,15 @@
+---
+- name: 01. Setup K3s Node
+  import_playbook: k3s-setup.yml
+
+- name: 02. Setup Cilium CNI & L2
+  import_playbook: cilium-setup.yml
+
+- name: 03. Setup Cert-Manager (Trust Foundation)
+  import_playbook: cert-manager-setup.yml
+
+- name: 04. Setup ArgoCD & Ingress
+  import_playbook: argocd-setup.yml
+
+- name: 05. Setup Sealed Secrets
+  import_playbook: sealed-secrets-setup.yml

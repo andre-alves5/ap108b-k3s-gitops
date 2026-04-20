@@ -21,6 +21,17 @@
         chart_version: 9.5.2
         kubeconfig: "{{ kubeconfig_path }}"
 
+    - name: Enable Helm in ArgoCD Kustomize
+      kubernetes.core.k8s:
+        kubeconfig: "{{ kubeconfig_path }}"
+        state: patched
+        kind: ConfigMap
+        name: argocd-cm
+        namespace: argocd
+        definition:
+          data:
+            kustomize.buildOptions: "--enable-helm"
+
     - name: Wait for ArgoCD server deployment to be ready
       kubernetes.core.k8s:
         api_version: apps/v1
@@ -43,9 +54,10 @@
             namespace: argocd
             annotations:
               kubernetes.io/ingress.class: cilium
+              cert-manager.io/cluster-issuer: "homelab-ca-issuer"
               ingress.cilium.io/service-type: LoadBalancer
+              ingress.cilium.io/loadbalancer-mode: shared
               cilium.io/ingress.ssl-passthrough: "true"
-              network.cilium.io/ingress-visibility: "external"
           spec:
             ingressClassName: cilium
             tls:
@@ -63,3 +75,17 @@
                           name: argocd-server
                           port:
                             name: https
+
+    - name: Restart ArgoCD Repo Server to apply Helm config
+      kubernetes.core.k8s:
+        kubeconfig: "{{ kubeconfig_path }}"
+        state: patched
+        kind: Deployment
+        name: argocd-repo-server
+        namespace: argocd
+        definition:
+          spec:
+            template:
+              metadata:
+                annotations:
+                  kubectl.kubernetes.io/restartedAt: "{{ ansible_date_time.iso8601 }}"
