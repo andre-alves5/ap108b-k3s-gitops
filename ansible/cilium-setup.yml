@@ -1,4 +1,3 @@
----
 - name: Deploy K3s environment with Cilium
   hosts: all
   become: true
@@ -6,6 +5,8 @@
     ansible_python_interpreter: /usr/bin/python3
     cluster_cidr: "10.110.0.0/16"
     service_cidr: "10.43.0.0/16"
+    external_cidr_start: "10.108.4.50/24"
+    external_cidr_stop: "10.108.4.60/24"
 
   tasks:
 
@@ -30,31 +31,36 @@
             operator:
               clusterPoolIPv4PodCIDRList: ["{{ cluster_cidr }}"]
               clusterPoolIPv4MaskSize: 24
-          k8s-install-cilium-pod-cidr: "true"
           routingMode: tunnel
           tunnelProtocol: vxlan
           kubeProxyReplacement: "false"
           enableIPv4Masquerade: true
           enableIPv6Masquerade: false
-          k8sServiceHost: 127.0.0.1
-          k8sServicePort: 6443
           l2announcements:
             enabled: true
           externalIPs:
             enabled: true
           loadBalancer:
             ipPool:
-              - start: 10.108.4.50
-                stop: 10.108.4.60
+              - start: "{{ external_cidr_start }}"
+                stop: "{{ external_cidr_stop }}"
           hubble:
             enabled: true
             relay:
               enabled: true
             ui:
               enabled: true
-          ingressController:
-            enabled: true
-            loadBalancerMode: dedicated
+
+    - name: Install Cilium Ingress Controller
+      kubernetes.core.helm:
+        release_name: cilium-ingress
+        chart_ref: cilium/cilium-ingress
+        release_namespace: kube-system
+        create_namespace: false
+        chart_version: 1.19.3
+        kubeconfig: /etc/rancher/k3s/k3s.yaml
+        release_values:
+          loadBalancerMode: dedicated
 
     - name: Pause to allow Cilium pods to settle
       ansible.builtin.pause:
