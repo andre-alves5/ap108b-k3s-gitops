@@ -54,6 +54,7 @@
               enabled: true
           ingressController:
             enabled: true
+            loadBalancerMode: dedicated
 
     - name: Pause to allow Cilium pods to settle
       ansible.builtin.pause:
