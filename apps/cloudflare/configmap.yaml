@@ -9,7 +9,3 @@ data:
     credentials-file: /etc/cloudflared/credentials.json
     metrics: 0.0.0.0:2000
     no-autoupdate: true
-    ingress:
-      - hostname: "*.agallaghertech.online"
-        service: http://cilium-ingress.kube-system.svc.cluster.local:80
-      - service: http_status:404

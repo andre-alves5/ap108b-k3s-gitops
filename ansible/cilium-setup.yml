@@ -85,6 +85,9 @@
           spec:
             externalIPs: true
             loadBalancerIPs: true
+            nodeSelector:
+              matchLabels:
+                kubernetes.io/hostname: cm3588-nas
 
     - name: Wait for Cilium pods to be Running
       kubernetes.core.k8s_info:

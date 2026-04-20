@@ -20,6 +20,10 @@
         create_namespace: true
         chart_version: 9.5.2
         kubeconfig: "{{ kubeconfig_path }}"
+        values:
+          server:
+            extraArgs:
+              - --insecure
 
     - name: Enable Helm in ArgoCD Kustomize (The Right Way)
       kubernetes.core.k8s:
@@ -32,7 +36,7 @@
           data:
             kustomize.buildOptions: "--enable-helm"
 
-    - name: Ensure Repo Server doesn't have invalid startup flags
+    - name: Clean and Reset Repo Server Deployment
       kubernetes.core.k8s:
         kubeconfig: "{{ kubeconfig_path }}"
         state: patched
@@ -45,7 +49,8 @@
               spec:
                 containers:
                   - name: repo-server
-                    args: ["/usr/local/bin/argocd-repo-server"]
+                    command: ["/usr/local/bin/argocd-repo-server"]
+                    args: []
 
     - name: Wait for ArgoCD server deployment to be ready
       kubernetes.core.k8s:
@@ -61,6 +66,7 @@
       kubernetes.core.k8s:
         kubeconfig: "{{ kubeconfig_path }}"
         state: present
+        force: yes
         definition:
           apiVersion: networking.k8s.io/v1
           kind: Ingress
@@ -73,7 +79,9 @@
               ingress.cilium.io/service-type: LoadBalancer
               ingress.cilium.io/loadbalancer-mode: shared
               cilium.io/ingress.ssl-passthrough: "false"
-              ingress.cilium.io/protocol: "https"
+              ingress.cilium.io/protocol: "http"
+              network.cilium.io/ingress-visibility: external
+              ingress.cilium.io/secure-backends: "false"
           spec:
             ingressClassName: cilium
             tls:
@@ -90,7 +98,7 @@
                         service:
                           name: argocd-server
                           port:
-                            name: https
+                            name: http
 
     - name: Wait for ArgoCD TLS Certificate to be Ready
       kubernetes.core.k8s_info:
