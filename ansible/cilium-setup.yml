@@ -42,7 +42,7 @@
             enabled: true
           externalIPs:
             enabled: true
-          loadbalancer:
+          loadBalancer:
             ipPool:
               - start: 10.108.4.50
                 stop: 10.108.4.60
