@@ -45,11 +45,13 @@
               kubernetes.io/ingress.class: cilium
               ingress.cilium.io/service-type: LoadBalancer
               cilium.io/ingress.ssl-passthrough: "true"
+              network.cilium.io/ingress-visibility: "external"
           spec:
             ingressClassName: cilium
             tls:
               - hosts:
                   - argocd.agallaghertech.online
+                secretName: argocd-server-tls
             rules:
               - host: argocd.agallaghertech.online
                 http:
