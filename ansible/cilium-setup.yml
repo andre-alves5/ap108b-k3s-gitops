@@ -42,6 +42,10 @@
             enabled: true
           externalIPs:
             enabled: true
+          loadbalancer:
+            ipPool:
+              - start: 10.108.4.50
+                stop: 10.108.4.60
           hubble:
             enabled: true
             relay:
