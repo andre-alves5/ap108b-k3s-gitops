@@ -1,28 +1,29 @@
+---
 - name: Deploy K3s environment with Cilium
   hosts: all
   become: true
   vars:
     ansible_python_interpreter: /usr/bin/python3
+    cilium_version: "1.15.3"
     cluster_cidr: "10.110.0.0/16"
-    service_cidr: "10.43.0.0/16"
-    external_cidr_start: "10.108.4.50/24"
-    external_cidr_stop: "10.108.4.60/24"
+    external_cidr_start: "10.108.4.50"
+    external_cidr_stop: "10.108.4.60"
 
   tasks:
-
     - name: Add Cilium Helm repo
       kubernetes.core.helm_repository:
         name: cilium
         repo_url: https://helm.cilium.io/
 
-    - name: Install Cilium via Helm
+    - name: Install Cilium via Helm (Unified Config)
       kubernetes.core.helm:
         release_name: cilium
         chart_ref: cilium/cilium
         release_namespace: kube-system
         create_namespace: true
-        chart_version: 1.19.3
+        chart_version: "{{ cilium_version }}"
         kubeconfig: /etc/rancher/k3s/k3s.yaml
+        wait: true
         release_values:
           operator:
             replicas: 1
@@ -33,17 +34,18 @@
               clusterPoolIPv4MaskSize: 24
           routingMode: tunnel
           tunnelProtocol: vxlan
-          kubeProxyReplacement: "false"
-          enableIPv4Masquerade: true
-          enableIPv6Masquerade: false
+          kubeProxyReplacement: "true"
+          ingressController:
+            enabled: true
+            default: true
+            loadBalancerMode: dedicated
           l2announcements:
             enabled: true
           externalIPs:
             enabled: true
           loadBalancer:
-            ipPool:
-              - start: "{{ external_cidr_start }}"
-                stop: "{{ external_cidr_stop }}"
+            l2:
+              enabled: true
           hubble:
             enabled: true
             relay:
@@ -51,16 +53,34 @@
             ui:
               enabled: true
 
-    - name: Install Cilium Ingress Controller
-      kubernetes.core.helm:
-        release_name: cilium-ingress
-        chart_ref: cilium/cilium-ingress
-        release_namespace: kube-system
-        create_namespace: false
-        chart_version: 1.19.3
+    - name: Create Cilium LoadBalancer IP Pool
+      kubernetes.core.k8s:
         kubeconfig: /etc/rancher/k3s/k3s.yaml
-        release_values:
-          loadBalancerMode: dedicated
+        state: present
+        definition:
+          apiVersion: cilium.io/v2alpha1
+          kind: CiliumLoadBalancerIPPool
+          metadata:
+            name: blue-pool
+            namespace: kube-system
+          spec:
+            blocks:
+              - start: "{{ external_cidr_start }}"
+                stop: "{{ external_cidr_stop }}"
+
+    - name: Create L2 Announcement Policy
+      kubernetes.core.k8s:
+        kubeconfig: /etc/rancher/k3s/k3s.yaml
+        state: present
+        definition:
+          apiVersion: cilium.io/v2alpha1
+          kind: CiliumL2AnnouncementPolicy
+          metadata:
+            name: default-l2-policy
+            namespace: kube-system
+          spec:
+            externalIPs: true
+            loadBalancerIPs: true
 
     - name: Pause to allow Cilium pods to settle
       ansible.builtin.pause:
