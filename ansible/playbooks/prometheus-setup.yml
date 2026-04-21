@@ -22,7 +22,7 @@
 
     - name: Apply Grafana Sealed Secret
       kubernetes.core.k8s:
-        src: "{{ repo_path }}/grafana-sealed-secret.yaml"
+        template: "{{ lookup('file', '../../ansible/secrets/grafana-sealed-secret.yaml') | from_yaml }}"
         namespace: monitoring
         kubeconfig: "{{ kubeconfig_path }}"
         state: present
