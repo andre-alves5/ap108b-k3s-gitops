@@ -1,0 +1,68 @@
+---
+- name: Deploy kube-prometheus-stack
+  hosts: all
+  become: true
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+    kubeconfig_path: /etc/rancher/k3s/k3s.yaml
+    repo_path: "/home/andre/ap108b-k3s-gitops/ansible/secrets"
+
+  tasks:
+    - name: Add Prometheus Helm repo
+      kubernetes.core.helm_repository:
+        name: prometheus-community
+        repo_url: https://prometheus-community.github.io/helm-charts
+
+    - name: Ensure monitoring namespace exists
+      kubernetes.core.k8s:
+        name: monitoring
+        kind: Namespace
+        state: present
+        kubeconfig: "{{ kubeconfig_path }}"
+
+    - name: Apply Grafana Sealed Secret
+      kubernetes.core.k8s:
+        src: "{{ repo_path }}/grafana-sealed-secret.yml"
+        namespace: monitoring
+        kubeconfig: "{{ kubeconfig_path }}"
+        state: present
+
+    - name: Install kube-prometheus-stack
+      kubernetes.core.helm:
+        release_name: obs-prometheus
+        release_namespace: monitoring
+        chart_ref: prometheus-community/kube-prometheus-stack
+        chart_version: 56.6.0
+        create_namespace: true
+        kubeconfig: "{{ kubeconfig_path }}"
+        server_side_apply: true
+        wait: true
+        values:
+          prometheus:
+            prometheusSpec:
+              retention: 5d
+              storageSpec:
+                volumeClaimTemplate:
+                  spec:
+                    storageClassName: local-path
+                    accessModes: ["ReadWriteOnce"]
+                    resources:
+                      requests:
+                        storage: 20Gi
+          grafana:
+            admin:
+              existingSecret: "grafana-admin-credentials"
+              userKey: "admin-user"
+              passwordKey: "admin-password"
+            persistence:
+              enabled: true
+              storageClassName: local-path
+              size: 10Gi
+            ingress:
+              enabled: true
+              ingressClassName: cilium
+              hosts:
+                - grafana.agallaghertech.online
+              path: /
+              service:
+                port: 80

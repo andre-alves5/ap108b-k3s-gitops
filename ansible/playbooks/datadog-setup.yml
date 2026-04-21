@@ -1,0 +1,45 @@
+---
+- name: Deploy Datadog
+  hosts: all
+  become: true
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+    kubeconfig_path: /etc/rancher/k3s/k3s.yaml
+    repo_path: "/home/andre/ap108b-k3s-gitops/ansible/secrets"
+
+  tasks:
+    - name: Add Datadog Helm repo
+      kubernetes.core.helm_repository:
+        name: datadog
+        repo_url: https://helm.datadoghq.com
+
+    - name: Apply Datadog Sealed Secret
+      kubernetes.core.k8s:
+        src: "{{ repo_path }}/datadog-sealed-secret.yml"
+        namespace: monitoring
+        kubeconfig: "{{ kubeconfig_path }}"
+        state: present
+
+    - name: Install Datadog Agent
+      kubernetes.core.helm:
+        release_name: obs-datadog
+        release_namespace: monitoring
+        chart_ref: datadog/datadog
+        chart_version: 3.66.0
+        create_namespace: true
+        kubeconfig: "{{ kubeconfig_path }}"
+        wait: true
+        values:
+          datadog:
+            apiKeyExistingSecret: datadog-secret
+            appKeyExistingSecret: datadog-secret
+            site: "datadoghq.eu"
+            kubelet:
+              tlsVerify: false
+          clusterAgent:
+            enabled: true
+            tokenExistingSecret: datadog-secret
+            metricsProvider:
+              enabled: false
+          agents:
+            enabled: true

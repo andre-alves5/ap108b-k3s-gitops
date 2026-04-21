@@ -10,6 +10,10 @@ spec:
         revision: HEAD
         directories:
           - path: infrastructure/*
+          - path: infrastructure/monitoring
+            exclude: true
+          - path: infrastructure/scaling
+            exclude: true
   template:
     metadata:
       name: "{{path.basename}}"

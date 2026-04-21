@@ -13,3 +13,12 @@
 
 - name: 05. Setup Sealed Secrets
   import_playbook: sealed-secrets-setup.yml
+
+- name: 06. Setup Prometheus and Grafana
+  import_playbook: prometheus-setup.yml
+
+- name: 07. Setup Datadog
+  import_playbook: datadog-setup.yml
+
+- name: 08. Setup Keda
+  import_playbook: keda-setup.yml

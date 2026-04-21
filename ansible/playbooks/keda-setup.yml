@@ -1,0 +1,34 @@
+---
+- name: Deploy Keda
+  hosts: all
+  become: true
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+    kubeconfig_path: /etc/rancher/k3s/k3s.yaml
+
+  tasks:
+    - name: Add Keda Helm repo
+      kubernetes.core.helm_repository:
+        name: keda
+        repo_url: https://kedacore.github.io/charts
+
+    - name: Install Keda via Helm
+      kubernetes.core.helm:
+        release_name: keda
+        release_namespace: kube-system
+        chart_ref: keda/keda
+        create_namespace: true
+        chart_version: 2.14.0
+        kubeconfig: "{{ kubeconfig_path }}"
+        wait: true
+        server_side_apply: true
+        values:
+          installCRDs: true
+          resources:
+            operator:
+              limits:
+                cpu: 500m
+                memory: 256Mi
+              requests:
+                cpu: 100m
+                memory: 128Mi
