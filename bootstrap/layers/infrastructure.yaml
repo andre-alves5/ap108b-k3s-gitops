@@ -10,12 +10,6 @@ spec:
         revision: HEAD
         directories:
           - path: infrastructure/*
-          - path: infrastructure/networking
-            exclude: true
-          - path: infrastructure/security
-            exclude: true
-          - path: infrastructure/identity
-            exclude: true
   template:
     metadata:
       name: "{{path.basename}}"
@@ -32,4 +26,7 @@ spec:
         namespace: "{{path.basename}}"
       syncPolicy:
         automated: { prune: true, selfHeal: true }
-        syncOptions: [CreateNamespace=true]
+        syncOptions:
+          - CreateNamespace=true
+          - ServerSideApply=true
+          - Replace=true
