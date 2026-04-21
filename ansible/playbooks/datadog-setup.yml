@@ -15,7 +15,7 @@
 
     - name: Apply Datadog Sealed Secret
       kubernetes.core.k8s:
-        template: "{{ lookup('file', '../../ansible/secrets/datadog-sealed-secret.yaml') | from_yaml }}"
+        definition: "{{ lookup('file', '../secrets/datadog-sealed-secret.yaml') | from_yaml }}"
         namespace: monitoring
         kubeconfig: "{{ kubeconfig_path }}"
         state: present
