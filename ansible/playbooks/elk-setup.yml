@@ -91,6 +91,7 @@
               ingress.cilium.io/service-type: LoadBalancer
               ingress.cilium.io/loadbalancer-mode: shared
               ingress.cilium.io/secure-backends: "false"
+              ingress.cilium.io/force-https: "false"
               network.cilium.io/ingress-visibility: external
           spec:
             ingressClassName: cilium

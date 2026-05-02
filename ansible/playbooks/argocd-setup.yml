@@ -80,6 +80,7 @@
               ingress.cilium.io/loadbalancer-mode: shared
               cilium.io/ingress.ssl-passthrough: "false"
               ingress.cilium.io/protocol: "http"
+              ingress.cilium.io/force-https: "false"
               network.cilium.io/ingress-visibility: external
               ingress.cilium.io/secure-backends: "false"
           spec:
