@@ -5,20 +5,23 @@
 - name: 02. Setup Cilium CNI & L2
   import_playbook: cilium-setup.yml
 
-- name: 03. Setup Cert-Manager (Trust Foundation)
-  import_playbook: cert-manager-setup.yml
-
-- name: 04. Setup ArgoCD & Ingress
-  import_playbook: argocd-setup.yml
-
-- name: 05. Setup Sealed Secrets
+- name: 03. Setup Sealed Secrets
   import_playbook: sealed-secrets-setup.yml
 
-- name: 06. Setup Prometheus and Grafana
+- name: 04. Setup Setup Cloudflare Tunnel
+  import_playbook: cloudflare-setup.yml
+
+- name: 05. Setup Cert-Manager (Trust Foundation)
+  import_playbook: cert-manager-setup.yml
+
+- name: 06. Setup ArgoCD & Ingress
+  import_playbook: argocd-setup.yml
+
+- name: 07. Setup Prometheus and Grafana
   import_playbook: prometheus-setup.yml
 
-- name: 07. Setup ELK Stack
+- name: 08. Setup ELK Stack
   import_playbook: elk-setup.yml
 
-- name: 08. Setup Keda
+- name: 09. Setup Keda
   import_playbook: keda-setup.yml

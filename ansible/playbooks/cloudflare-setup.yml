@@ -1,0 +1,104 @@
+---
+- name: Deploy Cloudflare Tunnel Infrastructure
+  hosts: all
+  become: true
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+    kubeconfig_path: /etc/rancher/k3s/k3s.yaml
+    manifests_path: "../cloudflare"
+
+  tasks:
+    - name: Ensure cloudflare namespace exists
+      kubernetes.core.k8s:
+        kubeconfig: "{{ kubeconfig_path }}"
+        name: cloudflare
+        kind: Namespace
+        state: present
+
+    - name: Apply Cloudflare Tunnel Sealed Secret
+      kubernetes.core.k8s:
+        kubeconfig: "{{ kubeconfig_path }}"
+        state: present
+        definition: "{{ lookup('file', manifests_path + '../secrets/cloudflare-sealed-secret.yml') | from_yaml }}"
+
+    - name: Apply Cloudflare ConfigMap (with Wildcard Host Routing)
+      kubernetes.core.k8s:
+        kubeconfig: "{{ kubeconfig_path }}"
+        state: present
+        definition:
+          apiVersion: v1
+          kind: ConfigMap
+          metadata:
+            name: cloudflared-config
+            namespace: cloudflare
+          data:
+            config.yaml: |
+              tunnel: 7f6d76f9-aa88-4faa-92c1-5e22432bee60
+              credentials-file: /etc/cloudflared/credentials.json
+              metrics: 0.0.0.0:2000
+              no-autoupdate: true
+              ingress:
+                - hostname: "*.agallaghertech.site"
+                  service: http://cilium-ingress.kube-system.svc.cluster.local:80
+                  originRequest:
+                    # Essential for passing the original hostname (e.g. argocd.xxx) to Cilium
+                    httpHostHeader: ""
+                - service: http_status:404
+
+    - name: Deploy cloudflared pods
+      kubernetes.core.k8s:
+        kubeconfig: "{{ kubeconfig_path }}"
+        state: present
+        definition:
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: cloudflared
+            namespace: cloudflare
+          spec:
+            replicas: 2
+            selector:
+              matchLabels:
+                app: cloudflared
+            template:
+              metadata:
+                labels:
+                  app: cloudflared
+              spec:
+                containers:
+                - name: cloudflared
+                  image: cloudflare/cloudflared:latest
+                  args: ["tunnel", "--config", "/etc/cloudflared/config.yaml", "run"]
+                  livenessProbe:
+                    httpGet:
+                      path: /ready
+                      port: 2000
+                    initialDelaySeconds: 1
+                    periodSeconds: 10
+                  volumeMounts:
+                  - name: config
+                    mountPath: /etc/cloudflared/config.yaml
+                    subPath: config.yaml
+                    readOnly: true
+                  - name: creds
+                    mountPath: /etc/cloudflared/credentials.json
+                    subPath: credentials.json
+                    readOnly: true
+                volumes:
+                - name: creds
+                  secret:
+                    secretName: tunnel-credentials
+                - name: config
+                  configMap:
+                    name: cloudflared-config
+
+    - name: Wait for cloudflared to be ready
+      kubernetes.core.k8s_info:
+        kubeconfig: "{{ kubeconfig_path }}"
+        kind: Deployment
+        name: cloudflared
+        namespace: cloudflare
+      register: tunnel_deploy
+      until: (tunnel_deploy.resources[0].status.readyReplicas | default(0)) > 0
+      retries: 15
+      delay: 10
