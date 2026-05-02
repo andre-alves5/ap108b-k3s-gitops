@@ -57,7 +57,7 @@
               no-autoupdate: true
               ingress:
                 - hostname: "*.{{ domain }}"
-                  service: http://cilium-ingress.kube-system.svc.cluster.local:80
+                  service: http://10.43.12.16:80
                   originRequest:
                     httpHostHeader: ""
                 - service: http_status:404
@@ -85,7 +85,7 @@
                 containers:
                 - name: cloudflared
                   image: cloudflare/cloudflared:latest
-                  args: ["tunnel", "--config", "/etc/cloudflared/config.yaml", "run"]
+                  args: ["tunnel", "run", "--config", "/etc/cloudflared/config.yaml"]
                   livenessProbe:
                     httpGet:
                       path: /ready
