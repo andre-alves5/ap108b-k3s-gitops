@@ -92,6 +92,16 @@
                   configMap:
                     name: cloudflared-config
 
+    - name: Create Wildcard DNS Record via Cloudflare API
+      community.general.cloudflare_dns:
+        zone: "{{ domain }}"
+        record: "*"
+        type: CNAME
+        value: "{{ tunnel_id }}.cfargotunnel.com"
+        proxied: yes
+        api_token: "{{ cloudflare_api_token }}"
+      delegate_to: localhost
+
     - name: Wait for cloudflared to be ready
       kubernetes.core.k8s_info:
         kubeconfig: "{{ kubeconfig_path }}"
