@@ -19,7 +19,7 @@
       kubernetes.core.k8s:
         kubeconfig: "{{ kubeconfig_path }}"
         state: present
-        definition: "{{ lookup('file', manifests_path + '../secrets/cloudflare-sealed-secret.yml') | from_yaml }}"
+        definition: "{{ lookup('file', '../secrets/cloudflare-sealed-secret.yaml') | from_yaml }}"
 
     - name: Apply Cloudflare ConfigMap (with Wildcard Host Routing)
       kubernetes.core.k8s:
