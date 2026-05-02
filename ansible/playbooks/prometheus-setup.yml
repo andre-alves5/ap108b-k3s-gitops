@@ -20,6 +20,20 @@
         state: present
         kubeconfig: "{{ kubeconfig_path }}"
 
+    - name: Install Prometheus Operator CRDs (Manual SSA)
+      kubernetes.core.k8s:
+        src: "{{ item }}"
+        server_side_apply:
+          field_manager: ansible
+        kubeconfig: "{{ kubeconfig_path }}"
+        state: present
+      loop:
+        - "https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/main/example/prometheus-operator-crd/monitoring.coreos.com_alertmanagers.yaml"
+        - "https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/main/example/prometheus-operator-crd/monitoring.coreos.com_prometheuses.yaml"
+        - "https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/main/example/prometheus-operator-crd/monitoring.coreos.com_prometheusrules.yaml"
+        - "https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/main/example/prometheus-operator-crd/monitoring.coreos.com_servicemonitors.yaml"
+        - "https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/main/example/prometheus-operator-crd/monitoring.coreos.com_podmonitors.yaml"
+
     - name: Apply Grafana Sealed Secret
       kubernetes.core.k8s:
         definition: "{{ lookup('file', '../secrets/grafana-sealed-secret.yaml') | from_yaml }}"
@@ -35,9 +49,17 @@
         chart_version: 56.6.0
         create_namespace: true
         kubeconfig: "{{ kubeconfig_path }}"
-        server_side_apply: true
+        skip_crds: true
         wait: true
         values:
+          prometheusOperator:
+            admissionWebhooks:
+              patch:
+                enabled: false
+            thanosRuler:
+              enabled: false
+            disabledNamespaces: []
+            manageCrds: false
           prometheus:
             prometheusSpec:
               retention: 5d
@@ -61,8 +83,13 @@
             ingress:
               enabled: true
               ingressClassName: cilium
+              annotations:
+                cert-manager.io/cluster-issuer: "homelab-ca-issuer"
+                ingress.cilium.io/service-type: LoadBalancer
+                ingress.cilium.io/loadbalancer-mode: shared
+                network.cilium.io/ingress-visibility: external
               hosts:
-                - grafana.agallaghertech.online
+                - grafana.agallaghertech.site
               path: /
               service:
                 port: 80

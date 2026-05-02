@@ -12,6 +12,13 @@
         name: keda
         repo_url: https://kedacore.github.io/charts
 
+    - name: Install KEDA CRDs
+      kubernetes.core.k8s:
+        src: https://github.com/kedacore/keda/releases/download/v2.14.0/keda-2.14.0-crds.yaml
+        server_side_apply:
+          field_manager: ansible
+        kubeconfig: "{{ kubeconfig_path }}"
+
     - name: Install Keda via Helm
       kubernetes.core.helm:
         release_name: keda
@@ -20,8 +27,8 @@
         create_namespace: true
         chart_version: 2.14.0
         kubeconfig: "{{ kubeconfig_path }}"
+        skip_crds: true
         wait: true
-        server_side_apply: true
         values:
           installCRDs: true
           resources:

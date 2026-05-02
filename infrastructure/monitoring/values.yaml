@@ -38,7 +38,7 @@ kube-prometheus-stack:
       enabled: true
       ingressClassName: cilium
       hosts:
-        - grafana.agallaghertech.online
+        - grafana.agallaghertech.site
       path: /
       service:
         port: 80

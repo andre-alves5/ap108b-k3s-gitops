@@ -1,0 +1,188 @@
+---
+- name: Deploy ELK Stack (ECK Operator)
+  hosts: all
+  become: true
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+    kubeconfig_path: /etc/rancher/k3s/k3s.yaml
+    stack_version: 8.12.0
+
+  tasks:
+    - name: Add Elastic Helm repo
+      kubernetes.core.helm_repository:
+        name: elastic
+        repo_url: https://helm.elastic.co
+
+    - name: Install ECK Operator
+      kubernetes.core.helm:
+        release_name: eck-operator
+        release_namespace: elastic-system
+        chart_ref: elastic/eck-operator
+        create_namespace: true
+        kubeconfig: "{{ kubeconfig_path }}"
+        wait: true
+
+    - name: Deploy Elasticsearch Instance
+      kubernetes.core.k8s:
+        kubeconfig: "{{ kubeconfig_path }}"
+        state: present
+        definition:
+          apiVersion: elasticsearch.k8s.elastic.co/v1
+          kind: Elasticsearch
+          metadata:
+            name: quickstart
+            namespace: monitoring
+          spec:
+            version: "{{ stack_version }}"
+            nodeSets:
+            - name: default
+              count: 1
+              config:
+                node.store.allow_mmap: false
+              podTemplate:
+                spec:
+                  containers:
+                  - name: elasticsearch
+                    resources:
+                      limits: { memory: 4Gi, cpu: 2 }
+                      requests: { memory: 2Gi }
+              volumeClaimTemplates:
+              - metadata:
+                  name: elasticsearch-data
+                spec:
+                  accessModes: [ReadWriteOnce]
+                  resources:
+                    requests: { storage: 30Gi }
+                  storageClassName: local-path
+
+    - name: Deploy Kibana Instance
+      kubernetes.core.k8s:
+        kubeconfig: "{{ kubeconfig_path }}"
+        state: present
+        definition:
+          apiVersion: kibana.k8s.elastic.co/v1
+          kind: Kibana
+          metadata:
+            name: quickstart
+            namespace: monitoring
+          spec:
+            version: "{{ stack_version }}"
+            count: 1
+            elasticsearchRef:
+              name: quickstart
+            http:
+              tls:
+                selfSignedCertificate:
+                  disabled: true
+
+    - name: Create Ingress for Kibana
+      kubernetes.core.k8s:
+        kubeconfig: "{{ kubeconfig_path }}"
+        state: present
+        definition:
+          apiVersion: networking.k8s.io/v1
+          kind: Ingress
+          metadata:
+            name: kibana-ingress
+            namespace: monitoring
+            annotations:
+              kubernetes.io/ingress.class: cilium
+              cert-manager.io/cluster-issuer: "homelab-ca-issuer"
+              ingress.cilium.io/service-type: LoadBalancer
+              ingress.cilium.io/loadbalancer-mode: shared
+              ingress.cilium.io/secure-backends: "false"
+              network.cilium.io/ingress-visibility: external
+          spec:
+            ingressClassName: cilium
+            rules:
+              - host: kibana.agallaghertech.site
+                http:
+                  paths:
+                    - path: /
+                      pathType: Prefix
+                      backend:
+                        service:
+                          name: quickstart-kb-http
+                          port:
+                            number: 5601
+
+    - name: Deploy Fleet Server (The Management Hub)
+      kubernetes.core.k8s:
+        kubeconfig: "{{ kubeconfig_path }}"
+        state: present
+        definition:
+          apiVersion: agent.k8s.elastic.co/v1alpha1
+          kind: Agent
+          metadata:
+            name: fleet-server
+            namespace: monitoring
+          spec:
+            version: "{{ stack_version }}"
+            kibanaRef:
+              name: quickstart
+            elasticsearchRefs:
+            - name: quickstart
+            mode: fleet
+            fleetServerEnabled: true
+            policyID: "7fc9b772-fd1c-4ca3-a10b-15b3517a440e"
+            deployment:
+              replicas: 1
+              podTemplate:
+                spec:
+                  containers:
+                  - name: agent
+                    securityContext:
+                      runAsUser: 0
+                      capabilities:
+                        add:
+                          - NET_ADMIN
+                          - NET_BIND_SERVICE
+                    resources:
+                      limits: { memory: 1Gi, cpu: 1 }
+
+    - name: Create Independent NodePort Service for Fleet
+      kubernetes.core.k8s:
+        kubeconfig: "{{ kubeconfig_path }}"
+        state: present
+        definition:
+          apiVersion: v1
+          kind: Service
+          metadata:
+            name: fleet-server-nodeport
+            namespace: monitoring
+          spec:
+            type: NodePort
+            selector:
+              agent.k8s.elastic.co/name: fleet-server
+            ports:
+            - name: https
+              port: 8220
+              targetPort: 8220
+              nodePort: 30220
+            - name: syslog
+              port: 514
+              targetPort: 5140
+              nodePort: 30514
+              protocol: UDP
+
+    - name: Create Independent NodePort Service for ElasticSearch
+      kubernetes.core.k8s:
+        kubeconfig: "{{ kubeconfig_path }}"
+        state: present
+        definition:
+          apiVersion: v1
+          kind: Service
+          metadata:
+            name: quickstart-es-external
+            namespace: monitoring
+          spec:
+            type: NodePort
+            selector:
+              common.k8s.elastic.co/type: elasticsearch
+              elasticsearch.k8s.elastic.co/cluster-name: quickstart
+            ports:
+              - name: https
+                protocol: TCP
+                port: 9200
+                targetPort: 9200
+                nodePort: 30604

@@ -85,7 +85,7 @@
           spec:
             ingressClassName: cilium
             rules:
-              - host: argocd.agallaghertech.online
+              - host: argocd.agallaghertech.site
                 http:
                   paths:
                     - path: /
