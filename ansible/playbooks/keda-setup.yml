@@ -27,7 +27,7 @@
         create_namespace: true
         chart_version: 2.14.0
         kubeconfig: "{{ kubeconfig_path }}"
-        skip_crds: true
+        skip_crds: falseß
         wait: true
         values:
           installCRDs: true
