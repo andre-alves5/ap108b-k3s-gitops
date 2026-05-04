@@ -2,10 +2,8 @@
 - name: Deploy ELK Stack (ECK Operator)
   hosts: all
   become: true
-  vars:
-    ansible_python_interpreter: /usr/bin/python3
-    kubeconfig_path: /etc/rancher/k3s/k3s.yaml
-    stack_version: 8.12.0
+  vars_files:
+    - ../vars/main_vars.yml
 
   tasks:
     - name: Add Elastic Helm repo

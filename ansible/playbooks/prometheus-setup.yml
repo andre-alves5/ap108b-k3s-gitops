@@ -2,10 +2,8 @@
 - name: Deploy kube-prometheus-stack
   hosts: all
   become: true
-  vars:
-    ansible_python_interpreter: /usr/bin/python3
-    kubeconfig_path: /etc/rancher/k3s/k3s.yaml
-    repo_path: "/home/andre/ap108b-k3s-gitops/ansible/secrets"
+  vars_files:
+    - ../vars/main_vars.yml
 
   tasks:
     - name: Add Prometheus Helm repo

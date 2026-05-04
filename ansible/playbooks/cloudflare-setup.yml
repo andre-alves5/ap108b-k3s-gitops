@@ -2,12 +2,8 @@
 - name: Deploy Cloudflare Tunnel Infrastructure
   hosts: all
   become: true
-  vars:
-    ansible_python_interpreter: /usr/bin/python3
-    kubeconfig_path: /etc/rancher/k3s/k3s.yaml
-    manifests_path: "../cloudflare"
-    tunnel_id: "4ad70537-e6fe-4750-bd16-ea6d3b9ad2d5"
-    domain: "agallaghertech.site"
+  vars_files:
+    - ../vars/main_vars.yml
 
   tasks:
     - name: Ensure cloudflare namespace exists
@@ -53,6 +49,8 @@
             config.yaml: |
               tunnel: {{ tunnel_id }}
               credentials-file: /etc/cloudflared/credentials.json
+              metrics: 0.0.0.0:2000
+              no-autoupdate: true
               protocol: http2
               ingress:
                 - hostname: "*.{{ domain }}"

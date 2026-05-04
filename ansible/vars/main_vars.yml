@@ -1,0 +1,13 @@
+ansible_python_interpreter: "/usr/bin/python3"
+kubeconfig_path: "/etc/rancher/k3s/k3s.yaml"
+cilium_version: "1.15.3"
+cluster_cidr: "10.110.0.0/16"
+external_cidr_start: "10.108.4.50"
+external_cidr_stop: "10.108.4.60"
+stack_version: 8.12.0
+k3s_version: "v1.33.6+k3s1"
+service_cidr: "10.43.0.0/16"
+repo_path: "/home/andre/ap108b-k3s-gitops/ansible/secrets"
+manifests_path: "../cloudflare"
+tunnel_id: "4ad70537-e6fe-4750-bd16-ea6d3b9ad2d5"
+domain: "agallaghertech.site"

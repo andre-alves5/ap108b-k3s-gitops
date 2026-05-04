@@ -2,12 +2,8 @@
 - name: Deploy K3s environment with Cilium
   hosts: all
   become: true
-  vars:
-    ansible_python_interpreter: /usr/bin/python3
-    cilium_version: "1.15.3"
-    cluster_cidr: "10.110.0.0/16"
-    external_cidr_start: "10.108.4.50"
-    external_cidr_stop: "10.108.4.60"
+  vars_files:
+    - ../vars/main_vars.yml
 
   tasks:
     - name: Add Cilium Helm repo
