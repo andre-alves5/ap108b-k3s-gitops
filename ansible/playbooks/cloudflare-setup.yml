@@ -6,7 +6,7 @@
     ansible_python_interpreter: /usr/bin/python3
     kubeconfig_path: /etc/rancher/k3s/k3s.yaml
     manifests_path: "../cloudflare"
-    tunnel_id: "7f6d76f9-aa88-4faa-92c1-5e22432bee60"
+    tunnel_id: "4ad70537-e6fe-4750-bd16-ea6d3b9ad2d5"
     domain: "agallaghertech.site"
 
   tasks:
@@ -51,15 +51,12 @@
             namespace: cloudflare
           data:
             config.yaml: |
-              tunnel: 7f6d76f9-aa88-4faa-92c1-5e22432bee60
+              tunnel: {{ tunnel_id }}
               credentials-file: /etc/cloudflared/credentials.json
-              metrics: 0.0.0.0:2000
-              no-autoupdate: true
+              protocol: http2
               ingress:
                 - hostname: "*.{{ domain }}"
-                  service: http://10.43.12.16:80
-                  originRequest:
-                    httpHostHeader: ""
+                  service: http://cilium-ingress.kube-system.svc.cluster.local:80
                 - service: http_status:404
 
     - name: Deploy cloudflared pods
@@ -85,13 +82,18 @@
                 containers:
                 - name: cloudflared
                   image: cloudflare/cloudflared:latest
-                  args: ["tunnel", "run", "--config", "/etc/cloudflared/config.yaml"]
+                  args:
+                    - "tunnel"
+                    - "--config"
+                    - "/etc/cloudflared/config.yaml"
+                    - "run"
                   livenessProbe:
                     httpGet:
                       path: /ready
                       port: 2000
-                    initialDelaySeconds: 1
-                    periodSeconds: 10
+                    initialDelaySeconds: 30
+                    periodSeconds: 15
+                    failureTreshold: 5
                   volumeMounts:
                   - name: config
                     mountPath: /etc/cloudflared/config.yaml
